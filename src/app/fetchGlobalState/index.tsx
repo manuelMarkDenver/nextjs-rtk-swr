@@ -8,7 +8,7 @@ const FetchGlobalState = () => {
   return (
     <>
       <div className='margin: 30px'>
-        {posts ? JSON.stringify(posts.slice(0, 5)) : 'no data'}
+        {posts ? JSON.stringify(posts) : 'no data'}
       </div>
     </>
   );
