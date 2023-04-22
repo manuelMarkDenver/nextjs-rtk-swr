@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
 import type { RootState } from '@/store/store';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -9,22 +9,17 @@ import {
   incrementByAmount,
 } from '@/features/counters/counterSlice';
 
-import usePosts, { baseUrl } from '@/features/posts/usePosts';
+import { baseUrl } from '@/features/posts/usePosts';
 import { preload } from 'swr';
 import { fetcher } from '@/lib/common/fetcher';
-import FetchGlobalState from './fetchGlobalState';
-import { getPosts } from '@/features/posts/postsSlice';
+import PostsContainer from '@/features/posts/PostsContainer';
+import { CircularProgress } from '@mui/material';
 
-preload(`${baseUrl}/posts`, fetcher)
+preload(`${baseUrl}/posts`, fetcher);
 
 const Counter = () => {
   const count = useSelector((state: RootState) => state.counter.value);
   const [incrementAmount, setIncrementAmount] = useState('2');
-  //@
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [postId, setPostId] = useState('');
-  
-  // const [filter, setFilter] = useState('');
 
   const dispatch = useDispatch();
 
@@ -32,34 +27,9 @@ const Counter = () => {
     dispatch(incrementByAmount(Number(incrementAmount)));
   };
 
-  const { data, error, isLoading, mutate } = usePosts(postId);
-
-
-  useEffect(() => {
-    const fetchData = async () => {
-      //@ts-ignore
-      setPosts(data);
-      dispatch(getPosts(data));
-    };
-    if (data) fetchData();
-  }, [data]);
-
-  if (error)
-    return (
-      <>
-        <p className='text-red-500 mb-4'>
-          Failed to fetch data. Post ${postId} not found.
-        </p>
-
-        <button onClick={() => location.reload()}>Back</button>
-      </>
-    );
-
-  if (isLoading) return <p>Loading...</p>;
-
   return (
     <>
-      <div>
+      <div className='container max-w-[1100px] mx-auto py-10'>
         <button
           aria-label='Increment value'
           onClick={() => dispatch(increment())}
@@ -89,30 +59,49 @@ const Counter = () => {
           >
             Increment By Amount
           </button>
-
-          <div className='my-4'>
-            <input
-              type='text'
-              value={postId}
-              onChange={(e) => setPostId(e.target.value)}
-              className='border border-solid border-black mr-4 text-center'
-              placeholder='enter an id here to search for a post/s'
-            />
-          </div>
         </div>
-        {/* {posts ? (
-          <p>{JSON.stringify(posts)}</p>
-        ) : (
-          <p>No post/s</p>
-        )} */}
+
+        {/* Posts */}
+        {/* {posts ? <p>{JSON.stringify(posts)}</p> : <p>No post/s</p>}
+        <CustomButton
+          props={{
+            className: 'bg-black text-white px-3 py-1 rounded-lg mr-2 w-[100px]',
+            text: 'Previous',
+            onClick: handlePreviousPageClick,
+          }}
+        />
+        <CustomButton
+          props={{
+            className: 'bg-black text-white px-3 py-1 rounded-lg mr-2 w-[100px]',
+            text: 'Next',
+            onClick: handleNextPageClick,
+          }}
+        /> */}
+
+        <Suspense fallback={<CircularProgress />}>
+          <PostsContainer />
+        </Suspense>
       </div>
-
-      <br/>
-
       {/* Another Component / To fetch global state */}
-      <FetchGlobalState />
+      {/* <FetchGlobalState /> */}
     </>
   );
 };
 
 export default Counter;
+
+// embedded components
+
+// type ButtonProps = {
+//   className: string;
+//   text: string;
+//   onClick: () => void;
+// };
+
+// const CustomButton = ({ props }: { props: ButtonProps }) => {
+//   return (
+//     <button className={props.className} onClick={props.onClick}>
+//       {props.text}
+//     </button>
+//   );
+// };
